@@ -1,0 +1,120 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Open libraries here
+
+```{r}
+library(tidyverse)
+```
+
+## Open directory and file
+
+```{r}
+setwd('/Users/lenovo1/Desktop/PhD/projects/anhedonia_class_project/Questionnaire_data/')
+getwd()
+file_ques = 'anhedonia_ques_feb23.csv'
+df = read.csv(file_ques, header = TRUE, na.strings = c(""," "))
+head(df)
+```
+
+```{r}
+#Checking for NAs in DASS columns
+s = c()
+for (i in c(1:21)){
+  s[i] = sum(is.na(df[cat('dass21_',i,sep="")]))
+}
+s
+```
+
+```{r}
+#Calculating DASS-21 scores
+dass_stress = 2*(df['dass21_1']+df['dass21_6']+df['dass21_8']+df['dass21_11']+df['dass21_12']+df['dass21_14']+df['dass21_18'])
+dass_anxiety = 2*(df['dass21_2']+df['dass21_4']+df['dass21_7']+df['dass21_9']+df['dass21_15']+df['dass21_19']+df['dass21_20'])
+dass_dep = 2*(df['dass21_3']+df['dass21_5']+df['dass21_10']+df['dass21_13']+df['dass21_16']+df['dass21_17']+df['dass21_21'])
+
+#adding columns with calculated scores for stress, anxiety and depression
+df['dass21_stress']= dass_stress 
+df['dass21_anxiety']= dass_anxiety
+df['dass21_dep']= dass_dep
+
+head(df['dass21_stress'])
+```
+```{r}
+#Perceived stress score
+
+  df['pss_total'] = df['pss10_1']+df['pss10_2']+df['pss10_3']+df['pss10_4']+df['pss10_5']+df['pss10_6']+df['pss10_7']+df['pss10_8']+df['pss10_9']+df['pss10_10']
+
+head(df['pss_total'])
+
+```
+```{r}
+#Perceived social support
+
+#score for significant other
+df['mspss_so'] = (df['person_around_sc']+df['person_share_sc']+df['person_comfort_sc']+df['person_cares_sc'])/4
+
+#score for family
+df['mspss_family'] = (df['family_helps_sc']+df['family_emotional_sc']+df['family_talk_sc']+df['family_decisions_sc'])/4
+
+#score for friend
+df['mspss_friend'] = (df['friends_help_sc']+df['friends_count_on_sc']+df['friends_share_sc']+df['friends_talk_sc'])/4
+
+#total perceived social support score
+df['mspss_total'] = (df['person_around_sc']+df['person_share_sc']+df['person_comfort_sc']+df['person_cares_sc']+df['family_helps_sc']+df['family_emotional_sc']+df['family_talk_sc']+df['family_decisions_sc']+df['friends_help_sc']+df['friends_count_on_sc']+df['friends_share_sc']+df['friends_talk_sc'])/12
+
+head(df['mspss_so'])
+head(df['mspss_family'])
+head(df['mspss_friend'])
+head(df['mspss_total'])
+
+```
+
+```{r}
+#Score for self-esteem scale
+
+df['rses_total'] = df['rses_sc_1']+df['rses_sc_2']+df['rses_sc_3']+df['rses_sc_4']+df['rses_sc_5']+df['rses_sc_6']+df['rses_sc_7']+df['rses_sc_8']+df['rses_sc_9']+df['rses_sc_10']
+head(df['rses_sc_total'])
+```
+```{r}
+#Score for active open minded thinking
+
+df['aot_score']=df['active_allowing']+df['active_people']+df['active_revise']+df['active_change']+df['active_intuition']+df['active_evidence']+df['active_disregard']
+head(df['aot_score'])
+```
+```{r}
+df['shaps_total']=df['shaps_1']+df['shaps_2']+df['shaps_3']+df['shaps_4']+df['shaps_5']+df['shaps_6']+df['shaps_7']+df['shaps_8']+df['shaps_9']+df['shaps_10']+df['shaps_11']+df['shaps_12']+df['shaps_13']+df['shaps_14']
+
+head(df['shaps_total'])
+```
+```{r}
+head(df['madrs_score'])
+```
+
+```{r}
+#Making a subset of required columns
+sub2 = df[,grep("lec_", colnames(df))]
+sub1 = subset(df, select = c("Participant_ID", "Group","age","gender","marital_status","ethnicity", "swear_sc","push_sc","touch_sc","loved_sc","eat_sc","divorced_sc","mother_sc","drugs_sc","depressed_sc","prison_sc","score_sc","aot_score","rses_total","mspss_so","mspss_family","mspss_friend","mspss_total","pss_total","dass21_stress","dass21_anxiety","dass21_dep","madrs_score","shaps_total"))
+head(sub1)
+head(sub2)
+sub_df = cbind(sub1,sub2)
+head(sub_df)
+
+```
+
+```{r}
+#Descriptive stats of subsetted dataframe
+library(psych)
+describe(sub_df)
+```
+```{r}
+hist(as.numeric(unlist(sub_df['mspss_family'])))
+hist(as.numeric(unlist(sub_df['rses_total'])))
+```
+
+```{r}
+#Storing csv file with questionnaire scores of all participants
+write.csv(sub_df, "All_ques_data.csv", row.names = FALSE)
+```
+
